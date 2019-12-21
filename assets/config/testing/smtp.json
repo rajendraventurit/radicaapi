@@ -1,0 +1,8 @@
+{
+	"default_from": "noreply@radica.com",
+	"host": "email-smtp.us-west-2.amazonaws.com",
+	"user": "",
+	"password": "",
+	"port": 465,
+	"template_path": "/etc/radica/templates"
+}
