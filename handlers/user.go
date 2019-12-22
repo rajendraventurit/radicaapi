@@ -35,6 +35,17 @@ func UserRoutes(env *env.Env) routetable.RouteTable {
 			Handler:  handler.Handler{Env: env, Fn: HandleCreateUser},
 			Insecure: true,
 		},
+
+		routetable.Route{
+			Category: "User",
+			Name:     "Users Activity",
+			Method:   "POST",
+			Input:    `{"device_id": "2fc4b5912826ad1", "activity_type": "open_app/dashboard/setting"}`,
+			Path:     "/api/v1/user/activity",
+			Handler:  handler.Handler{Env: env, Fn: HandleUserActivity},
+			Insecure: true,
+		},
+
 		// routetable.Route{
 		// 	Category:    "User",
 		// 	Name:        "Delete user",
@@ -130,6 +141,37 @@ func HandleCreateUser(env *env.Env, w http.ResponseWriter, r *http.Request) erro
 	}
 	usr.Password = ""
 	return sendJSON(w, usr)
+}
+
+// HandleUserActivity will track users activity
+func HandleUserActivity(env *env.Env, w http.ResponseWriter, r *http.Request) error {
+	p := struct {
+		DeviceID     string `json:"device_id"`
+		ActivityType string `json:"activity_type"`
+	}{}
+
+	if err := decodeJSON(r.Body, &p); err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	if p.DeviceID == "" && p.ActivityType == "" {
+		return serror.NewBadRequest(fmt.Errorf("device_id / activity_type name required"), "HandleCreteUser", "device_id / activity_type  required")
+	}
+
+	// Create axctivity
+	err := domain.CreateActivity(env.DB, p.DeviceID, p.ActivityType)
+	if err != nil {
+		return serror.Error{
+			Code:    http.StatusBadRequest,
+			Err:     err,
+			Context: "user.Activity",
+			Msg:     err.Error(),
+		}
+	}
+
+	return nil
+
 }
 
 // HandleDeleteUser will delete a users

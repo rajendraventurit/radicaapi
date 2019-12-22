@@ -22,6 +22,13 @@ type Userpassword struct {
 	Password       string `db:"password" json:"password"`
 }
 
+//UsersActivity keeps track of users activity
+type UsersActivity struct {
+	ID           int64  `db:"id" json:"id"`
+	DeviceID     string `db:"device_id" json:"device_id"`
+	ActivityType string `db:"activity_type" json:"activity_type"`
+}
+
 // CreateUser creates a user
 func CreateUser(ex db.Execer, fn, ln, email, pass string, roles ...int64) (*User, error) {
 	if err := validPassword(pass); err != nil {
@@ -37,6 +44,23 @@ func CreateUser(ex db.Execer, fn, ln, email, pass string, roles ...int64) (*User
 
 	err = u.Create(ex)
 	return u, err
+}
+
+// CreateActivity creates activity of user
+func CreateActivity(ex db.Execer, deviceid, activitytype string) error {
+
+	str := `
+		INSERT INTO users_activity
+			(device_id, activity_type)
+			VALUES
+			(?, ?)
+		`
+	_, err := ex.Exec(str, deviceid, activitytype)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdateUser will update a user
