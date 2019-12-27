@@ -46,6 +46,24 @@ func UserRoutes(env *env.Env) routetable.RouteTable {
 			Insecure: true,
 		},
 
+		routetable.Route{
+			Category: "User",
+			Name:     "Users disease",
+			Method:   "POST",
+			Input:    `{ "disease": "test disease","symtoms": "test1,test2,test3","disease_date":"2019-08-22 11:05:05","dbm":25,"onscreen_time":4}`,
+			Path:     "/api/v1/user/createdisease",
+			Handler:  handler.Handler{Env: env, Fn: HandleCreateDisease},
+		},
+
+		routetable.Route{
+			Category: "User",
+			Name:     "Users disease",
+			Method:   "GET",
+			Input:    `{}`,
+			Path:     "/api/v1/user/disease",
+			Handler:  handler.Handler{Env: env, Fn: HandleGetDisease},
+		},
+
 		// routetable.Route{
 		// 	Category:    "User",
 		// 	Name:        "Delete user",
@@ -171,6 +189,67 @@ func HandleUserActivity(env *env.Env, w http.ResponseWriter, r *http.Request) er
 	}
 
 	return nil
+
+}
+
+// HandleCreateDisease will create Disease of user
+func HandleCreateDisease(env *env.Env, w http.ResponseWriter, r *http.Request) error {
+
+	claims, err := token.AuthToken(r)
+
+	fmt.Println("err", err)
+
+	if err != nil {
+		return serror.New(http.StatusUnauthorized, err, "token.AuthToken", "")
+	}
+
+	p := struct {
+		Disease      string `json:"disease"`
+		Symtoms      string `json:"symtoms"`
+		DiseaseDate  string `json:"disease_date"`
+		Dbm          int64  `json:"dbm"`
+		OnscreenTime int64  `json:"onscreen_time"`
+	}{}
+
+	if err := decodeJSON(r.Body, &p); err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	// Create axctivity
+	err = domain.CreateDisease(env.DB, p.Disease, p.Symtoms, p.DiseaseDate, p.Dbm, p.OnscreenTime, claims.UserID)
+	if err != nil {
+		return serror.Error{
+			Code:    http.StatusBadRequest,
+			Err:     err,
+			Context: "user.Disease",
+			Msg:     err.Error(),
+		}
+	}
+
+	return nil
+
+}
+
+// HandleGetDisease will get all the disease
+func HandleGetDisease(env *env.Env, w http.ResponseWriter, r *http.Request) error {
+
+	claims, err := token.AuthToken(r)
+
+	defer r.Body.Close()
+
+	// get disease of user
+	dis, err := domain.GetUserDisease(env.DB, claims.UserID)
+	if err != nil {
+		return serror.Error{
+			Code:    http.StatusBadRequest,
+			Err:     err,
+			Context: "user.Disease",
+			Msg:     err.Error(),
+		}
+	}
+
+	return sendJSON1(w, dis, true, "Get Disease Successfully", http.StatusOK)
 
 }
 

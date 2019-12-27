@@ -88,15 +88,15 @@ func newPermMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		claim, err := token.AuthToken(r)
+		_, err = token.AuthToken(r)
 		if err != nil {
 			logger.Errorf(err.Error())
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
+		next.ServeHTTP(w, r)
+		return
 
-		logger.Errorf("Unauthorized UserID %v", claim.UserID)
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 	})
 }
 

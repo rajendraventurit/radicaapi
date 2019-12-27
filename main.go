@@ -12,6 +12,7 @@ import (
 	"github.com/rajendraventurit/radicaapi/lib/env"
 	"github.com/rajendraventurit/radicaapi/lib/logger"
 	"github.com/rajendraventurit/radicaapi/lib/routetable"
+	"github.com/rajendraventurit/radicaapi/lib/token"
 )
 
 var rTable = routetable.RouteTable{}
@@ -25,6 +26,12 @@ func main() {
 	}
 	defer ldb.Close()
 	SetLocalDB(ldb)
+
+	// JWT Token
+	if err := token.Configure(); err != nil {
+		logger.Fatal(err)
+	}
+
 	// http(s) Server
 	conf, err := loadConfig()
 	if err != nil {

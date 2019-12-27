@@ -29,6 +29,17 @@ type UsersActivity struct {
 	ActivityType string `db:"activity_type" json:"activity_type"`
 }
 
+//Disease keeps track of all the disease of user
+type Disease struct {
+	ID           int64         `db:"id" json:"id"`
+	Disease      db.NullString `db:"disease" json:"disease"`
+	Symtoms      db.NullString `db:"symtoms" json:"symtoms"`
+	DiseaseDate  db.NullString `db:"disease_date" json:"disease_date"`
+	Dbm          db.NullInt64  `db:"dbm" json:"dbm"`
+	OnscreenTime db.NullInt64  `db:"onscreen_time" json:"onscreen_time"`
+	UserID       db.NullInt64  `db:"user_id" json:"user_id"`
+}
+
 // CreateUser creates a user
 func CreateUser(ex db.Execer, fn, ln, email, pass string, roles ...int64) (*User, error) {
 	if err := validPassword(pass); err != nil {
@@ -61,6 +72,34 @@ func CreateActivity(ex db.Execer, deviceid, activitytype string) error {
 	}
 
 	return nil
+}
+
+// CreateDisease creates disease of user
+func CreateDisease(ex db.Execer, disease, symtoms, date string, dbm, onscreentime, userid int64) error {
+
+	str := `INSERT INTO disease_by_radiation
+			(disease,symtoms,disease_date,dbm,onscreen_time,user_id)
+			VALUES
+			(?,?,?,?,?,?)
+		`
+	_, err := ex.Exec(str, disease, symtoms, date, dbm, onscreentime, userid)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//GetUserDisease will return a disease
+func GetUserDisease(qr db.Queryer, userID int64) (*[]Disease, error) {
+	str := "SELECT id,disease,symtoms,disease_date,dbm,onscreen_time,user_id FROM disease_by_radiation WHERE user_id= ?"
+	disease := []Disease{}
+	err := qr.Select(&disease, str, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &disease, err
 }
 
 // UpdateUser will update a user
