@@ -45,6 +45,39 @@ CREATE TABLE IF NOT EXISTS `disease_by_radiation` (
 
 
 
+CREATE TABLE IF NOT EXISTS `disease` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `disease_name` varchar(255) DEFAULT NULL,
+  `created_on` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_on` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8
+
+
+INSERT INTO disease (disease_name) VALUES ('Cancer');
+INSERT INTO disease (disease_name) VALUES ('Brain cancer');
+INSERT INTO disease (disease_name) VALUES ('Breast Cancer');
+INSERT INTO disease (disease_name) VALUES ('Infertility');
+
+CREATE TABLE IF NOT EXISTS `user_disease` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `disease_id` varchar(255) DEFAULT NULL,
+  `user_id` bigint unsigned NOT NULL,
+  `created_on` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_on` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted` tinyint(1) NOT NULL DEFAULT '0',
+   CONSTRAINT user_fk1 FOREIGN KEY (user_id)
+		REFERENCES users (user_id) ON DELETE CASCADE,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8
+
+
+
+
+
+
+
 
 
 

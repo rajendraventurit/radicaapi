@@ -90,6 +90,45 @@ func CreateDisease(ex db.Execer, disease, symtoms, date string, dbm, onscreentim
 	return nil
 }
 
+// AddDisease add disease of user
+func AddDisease(ex db.Execer, diseaseid, userid int64) error {
+
+	str := `INSERT INTO user_disease
+			(disease_id,user_id)
+			VALUES
+			(?,?)
+		`
+	_, err := ex.Exec(str, diseaseid, userid)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//CheckIfAlreadyExist returns true if the record present
+func CheckIfAlreadyExist(qr db.Queryer, diseaseid, userid int64) error {
+
+	var cnt int64
+
+	sqlstr := `select count(*) from user_disease where disease_id=? and user_id=?`
+
+	err := qr.Get(&cnt, sqlstr, diseaseid, userid)
+
+	fmt.Println("err", err)
+
+	if err != nil {
+		return errors.New("Record is already present")
+	}
+
+	if cnt > 0 {
+		return errors.New("Record is already present")
+	}
+
+	return nil
+
+}
+
 //GetUserDisease will return a disease
 func GetUserDisease(qr db.Queryer, userID int64) (*[]Disease, error) {
 	str := "SELECT id,disease,symtoms,disease_date,dbm,onscreen_time,user_id FROM disease_by_radiation WHERE user_id= ?"
@@ -322,18 +361,25 @@ func (up Password) Save(ex db.Execer) error {
 
 // User is a user
 type User struct {
-	UserID     int64         `db:"user_id" json:"user_id"`
-	FirstName  db.NullString `db:"first_name" json:"first_name"`
-	LastName   db.NullString `db:"last_name" json:"last_name"`
-	Email      string        `db:"email" json:"email"`
-	Password   string        `db:"-" json:"password,omitempty"`
-	HashedPass []byte        `db:"password" json:"-"`
-	CreatedOn  time.Time     `db:"created_on" json:"created_on"`
-	UpdatedOn  time.Time     `db:"updated_on" json:"updated_on"`
-	Deleted    bool          `db:"deleted" json:"deleted"`
-	Token      string        `db:"-" json:"token,omitempty"`
-	RolesStr   string        `db:"roles_str" json:"-"`
-	Status     string        `json:"status"`
+	UserID       int64         `db:"user_id" json:"user_id"`
+	FirstName    db.NullString `db:"first_name" json:"first_name"`
+	LastName     db.NullString `db:"last_name" json:"last_name"`
+	Email        string        `db:"email" json:"email"`
+	Password     string        `db:"-" json:"password,omitempty"`
+	HashedPass   []byte        `db:"password" json:"-"`
+	CreatedOn    time.Time     `db:"created_on" json:"created_on"`
+	UpdatedOn    time.Time     `db:"updated_on" json:"updated_on"`
+	Deleted      bool          `db:"deleted" json:"deleted"`
+	Token        string        `db:"-" json:"token,omitempty"`
+	RolesStr     string        `db:"roles_str" json:"-"`
+	Status       string        `json:"status"`
+	UserDiseases []UserDisease `json:"user_diseases"`
+}
+
+//UserDisease is an object
+type UserDisease struct {
+	DiseaseID int64 `db:"disease_id" json:"disease_id"`
+	UserID    int64 `db:"user_id" json:"user_id"`
 }
 
 //OrganizationUser is object
@@ -441,7 +487,31 @@ func GetUserWithEmail(qr db.Queryer, email string) (*User, error) {
 		return nil, err
 	}
 
+	diseases, err := GetUserDiseases(qr, user.UserID)
+
+	if err != nil {
+		return &user, err
+	}
+
+	user.UserDiseases = diseases
+
 	return &user, err
+}
+
+//GetUserDiseases returns the diosease of the user
+func GetUserDiseases(qr db.Queryer, userid int64) ([]UserDisease, error) {
+
+	userdisease := []UserDisease{}
+
+	sqlstr := `SELECT disease_id,user_id from user_disease where user_id=?`
+
+	err := qr.Select(&userdisease, sqlstr, userid)
+	if err != nil {
+		return nil, err
+	}
+
+	return userdisease, nil
+
 }
 
 // GetUserID returns a user id from an email

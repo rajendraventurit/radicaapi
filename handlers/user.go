@@ -64,6 +64,15 @@ func UserRoutes(env *env.Env) routetable.RouteTable {
 			Handler:  handler.Handler{Env: env, Fn: HandleGetDisease},
 		},
 
+		routetable.Route{
+			Category: "User",
+			Name:     "Users disease",
+			Method:   "POST",
+			Input:    `{}`,
+			Path:     "/api/v1/disease/add",
+			Handler:  handler.Handler{Env: env, Fn: HandleAddDisease},
+		},
+
 		// routetable.Route{
 		// 	Category:    "User",
 		// 	Name:        "Delete user",
@@ -218,6 +227,50 @@ func HandleCreateDisease(env *env.Env, w http.ResponseWriter, r *http.Request) e
 
 	// Create axctivity
 	err = domain.CreateDisease(env.DB, p.Disease, p.Symtoms, p.DiseaseDate, p.Dbm, p.OnscreenTime, claims.UserID)
+	if err != nil {
+		return serror.Error{
+			Code:    http.StatusBadRequest,
+			Err:     err,
+			Context: "user.Disease",
+			Msg:     err.Error(),
+		}
+	}
+
+	return nil
+
+}
+
+// HandleAddDisease will add Disease of user
+func HandleAddDisease(env *env.Env, w http.ResponseWriter, r *http.Request) error {
+
+	claims, err := token.AuthToken(r)
+
+	if err != nil {
+		return serror.New(http.StatusUnauthorized, err, "token.AuthToken", "")
+	}
+
+	p := struct {
+		DiseaseID int64 `json:"disease_id"`
+	}{}
+
+	if err := decodeJSON(r.Body, &p); err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	err = domain.CheckIfAlreadyExist(env.DB, p.DiseaseID, claims.UserID)
+
+	if err != nil {
+		return serror.Error{
+			Code:    http.StatusBadRequest,
+			Err:     err,
+			Context: "user.Disease",
+			Msg:     err.Error(),
+		}
+	}
+
+	// Create axctivity
+	err = domain.AddDisease(env.DB, p.DiseaseID, claims.UserID)
 	if err != nil {
 		return serror.Error{
 			Code:    http.StatusBadRequest,
