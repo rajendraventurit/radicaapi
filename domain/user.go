@@ -475,6 +475,14 @@ func GetUserWithID(qr db.Queryer, userid int64) (*User, error) {
 		return nil, err
 	}
 
+	diseases, err := GetUserDiseases(qr, user.UserID)
+
+	if err != nil {
+		return &user, err
+	}
+
+	user.UserDiseases = diseases
+
 	return &user, nil
 }
 

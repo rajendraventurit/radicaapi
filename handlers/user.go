@@ -109,15 +109,14 @@ func UserRoutes(env *env.Env) routetable.RouteTable {
 		// 	Handler:  handler.Handler{Env: env, Fn: HandleResetPassword},
 		// 	Insecure: true,
 		// },
-		// routetable.Route{
-		// 	Category:    "User",
-		// 	Name:        "Get User",
-		// 	Method:      "GET",
-		// 	Input:       `?user_id=1`,
-		// 	Path:        "/api/v1/user",
-		// 	Handler:     handler.Handler{Env: env, Fn: HandleGetUser},
-		// 	Permissions: []int64{domain.PermManageSelf},
-		// },
+		routetable.Route{
+			Category: "User",
+			Name:     "Get User",
+			Method:   "GET",
+			Input:    `?user_id=1`,
+			Path:     "/api/v1/user",
+			Handler:  handler.Handler{Env: env, Fn: HandleGetUser},
+		},
 	)
 	return rt
 }
