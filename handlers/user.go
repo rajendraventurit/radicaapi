@@ -73,6 +73,15 @@ func UserRoutes(env *env.Env) routetable.RouteTable {
 			Handler:  handler.Handler{Env: env, Fn: HandleAddDisease},
 		},
 
+		routetable.Route{
+			Category: "User",
+			Name:     "Users Stats",
+			Method:   "GET",
+			Input:    `{}`,
+			Path:     "/api/v1/stats",
+			Handler:  handler.Handler{Env: env, Fn: HandleGetStats},
+		},
+
 		// routetable.Route{
 		// 	Category:    "User",
 		// 	Name:        "Delete user",
@@ -280,6 +289,28 @@ func HandleAddDisease(env *env.Env, w http.ResponseWriter, r *http.Request) erro
 	}
 
 	return nil
+
+}
+
+// HandleGetStats will get all the stats
+func HandleGetStats(env *env.Env, w http.ResponseWriter, r *http.Request) error {
+
+	claims, err := token.AuthToken(r)
+
+	defer r.Body.Close()
+
+	// get disease of user
+	dis, err := domain.GetUserStats(env.DB, claims.UserID)
+	if err != nil {
+		return serror.Error{
+			Code:    http.StatusBadRequest,
+			Err:     err,
+			Context: "user.Stats",
+			Msg:     err.Error(),
+		}
+	}
+
+	return sendJSON1(w, dis, true, "Get Stats Successfully", http.StatusOK)
 
 }
 

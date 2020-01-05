@@ -40,6 +40,13 @@ type Disease struct {
 	UserID       db.NullInt64  `db:"user_id" json:"user_id"`
 }
 
+//Stats is the object
+type Stats struct {
+	Symtoms string `db:"symtoms" json:"symtoms"`
+	Total   int64  `db:"total" json:"total"`
+	Outof   int64  `db:"outof" json:"outof"`
+}
+
 // CreateUser creates a user
 func CreateUser(ex db.Execer, fn, ln, email, pass string, roles ...int64) (*User, error) {
 	if err := validPassword(pass); err != nil {
@@ -139,6 +146,87 @@ func GetUserDisease(qr db.Queryer, userID int64) (*[]Disease, error) {
 	}
 
 	return &disease, err
+}
+
+//GetUserStats will return a stats
+func GetUserStats(qr db.Queryer, userID int64) (*[]Stats, error) {
+
+	var err error
+	stats := []Stats{}
+
+	head := Stats{
+		Symtoms: "Headeache",
+		Total:   2,
+		Outof:   7,
+	}
+
+	stats = append(stats, head)
+
+	hloss := Stats{
+		Symtoms: "Hearing Loss",
+		Total:   3,
+		Outof:   7,
+	}
+
+	stats = append(stats, hloss)
+
+	hloss = Stats{
+		Symtoms: "Fatigue",
+		Total:   3,
+		Outof:   7,
+	}
+
+	stats = append(stats, hloss)
+
+	hloss = Stats{
+		Symtoms: "Depression",
+		Total:   4,
+		Outof:   7,
+	}
+
+	stats = append(stats, hloss)
+
+	hloss = Stats{
+		Symtoms: "Memory Loss",
+		Total:   4,
+		Outof:   7,
+	}
+
+	stats = append(stats, hloss)
+
+	hloss = Stats{
+		Symtoms: "Sleep Loss",
+		Total:   4,
+		Outof:   7,
+	}
+
+	stats = append(stats, hloss)
+
+	hloss = Stats{
+		Symtoms: "Vomit",
+		Total:   2,
+		Outof:   7,
+	}
+
+	stats = append(stats, hloss)
+
+	hloss = Stats{
+		Symtoms: "Skin Problem",
+		Total:   2,
+		Outof:   7,
+	}
+
+	stats = append(stats, hloss)
+
+	hloss = Stats{
+		Symtoms: "Concentration Loss",
+		Total:   2,
+		Outof:   7,
+	}
+
+	stats = append(stats, hloss)
+
+	return &stats, err
 }
 
 // UpdateUser will update a user
